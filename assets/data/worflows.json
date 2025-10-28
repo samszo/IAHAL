@@ -1,0 +1,26 @@
+[
+    {"label":"Extractions des données HAL de la collection H2PTM",
+        "worflow":"HAL_to_JSON",
+        "csv":"assets/data/refHalH2PTM.csv",
+        "fields":"&wt=json&rows=100000&sort=producedDateY_i%20desc&fl=halId_s,title_s,authFullName_s,authLastName_s,authFirstName_s,producedDate_s,producedDateY_i,docType_s,peerReviewing_s,invitedCommunication_s,subTitle_s,bookTitle_s,journalTitle_s,volume_s,issue_s,page_s,publisher_s,doiId_s,uri_s,authorityInstitution_s,number_s,serie_s,conferenceTitle_s,city_s,country_s,conferenceStartDate_s,conferenceEndDate_s,lectureName_s,reportType_s,lectureType_s,submitType_s,openAccess_bool,wosId_s,pubmedId_s,audience_s,otherType_s,authQuality_s,authIdFullName_fs,popularLevel_s,authIdHasPrimaryStructure_fs,linkExtId_s,language_s,keyword_s,domainAllCode_s,publicationDate_s"
+    },    
+    {"label":"Enregistrer dans OMK les données extraites de HAL pour H2PTM",
+        "worflow":"JSON_to_OMK",
+        "mermaid":"assets/data/JSON_to_OMK.mm",
+        "events":[
+            {"event":"start","label":"Démarrage du worflow","path":"#JSON_to_OMK-0"},
+            {"event":"loadJSON","label":"Charge les données HAL","path":"#loadJSON-1"
+                ,"jsons":[
+                    {"url":"assets/data/dataHalOrgH2PTM.json","path":"dbStructures-3"},
+                    {"url":"assets/data/dataHalAutH2PTM.json","path":"dbAuteurs-5"},
+                    {"url":"assets/data/dataHalKeywordH2PTM.json","path":"dbTags-7"},
+                    {"url":"assets/data/dataHalDepotH2PTM.json","path":"dbDepots-9"}
+                ]
+            },
+            {"event":"dataHalProcessed","label":"Données HAL traitées"},
+            {"event":"dataOmkLoaded","label":"Données OMK chargées"},
+            {"event":"dataOmkUpdated","label":"Données OMK mises à jour"},
+            {"event":"end","label":"Fin du worflow"}            
+        ]
+    }
+]

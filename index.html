@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IA HAL</title>
+    <script type="text/javascript" src="assets/js/d3.v7.min.js"></script>
+    <script src="assets/js/bootstrap5.3.bundle.min.js"></script>
+    <script src="assets/js/all.min.js"></script>
+    <script src="assets/js/handsontable.full.min.js"></script>
+    <script src="assets/js/main.js"></script>
+        
+    <link href="assets/css/bootstrap5.3.min.css" rel="stylesheet">
+    <link href="assets/css/all.min.css" rel="stylesheet">
+    <link href="assets/css/handsontable.full.min.css" rel="stylesheet">
+
+</head>
+
+<body class="d-flex h-100 text-center text-white bg-dark">
+
+    <div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
+
+
+        <header>
+            <div>
+                <nav class="navbar navbar-expand-lg bg-body-tertiary bg-dark border-bottom border-bottom-dark"
+                    data-bs-theme="dark">
+                    <div class="container-fluid">
+                        <a class="navbar-brand" href="#">
+                            <img src="assets/img/logo-paragraphe-blanc.svg" alt="Logo" width="86"
+                                class="d-inline-block align-text-top">
+                            IA HAL
+                        </a>
+                        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+                            aria-expanded="false" aria-label="Toggle navigation">
+                            <span class="navbar-toggler-icon"></span>
+                        </button>
+                        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                            <ul id="navbarMain" class="navbar-nav me-auto mb-2 mb-lg-0">
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                                        aria-expanded="false">
+                                        <i class="fa-solid fa-clipboard-question"></i>
+                                        <span id="selectQuery">Worflow</span>
+                                    </a>
+                                    <ul id="ddWorflow" class="dropdown-menu">
+                                    </ul>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </nav>
+
+            </div>
+        </header>
+
+
+        <main id='mainContent' class="px-3">
+            <div class="container-fluid text-center">
+                <div class="row text-start mt-3">
+                    <div class="col-4">
+                        <div id="workflow" class="row g-3 ">  
+                        </div> 
+                    </div>
+                    <div class="col-8 h-100" id="contentMap">
+                        <nav>
+                            <div class="nav nav-tabs" id="nav-tab" role="tablist">
+                              <button class="nav-link active" id="nav-wordstream-tab" data-bs-toggle="tab" data-bs-target="#nav-wordstream" type="button" role="tab" aria-controls="nav-wordstream" aria-selected="true">Flux des mots</button>
+                              <button class="nav-link" id="nav-tagcloud-tab" data-bs-toggle="tab" data-bs-target="#nav-tagcloud" type="button" role="tab" aria-controls="nav-tagcloud" aria-selected="true">Nuages mots</button>
+                              <button class="nav-link" id="nav-worldMap-tab" data-bs-toggle="tab" data-bs-target="#nav-worldMap" type="button" role="tab" aria-controls="nav-worldMap" aria-selected="false">Collaborations mondiales</button>
+                              <button class="nav-link" id="nav-franceMap-tab" data-bs-toggle="tab" data-bs-target="#nav-franceMap" type="button" role="tab" aria-controls="nav-franceMap" aria-selected="false">Collaborations françaises</button>
+                            </div>
+                          </nav>
+                          <div class="tab-content" id="nav-tabContent">
+                            <div class="tab-pane fade show active" id="nav-wordstream" role="tabpanel" aria-labelledby="nav-wordstream-tab" tabindex="0">
+                                <div id="canvasStream"></div>    
+                            </div>
+                            <div class="tab-pane fade show active" id="nav-tagcloud" role="tabpanel" aria-labelledby="nav-tagcloud-tab" tabindex="0">
+                                <div id="canvasTagcloud"></div>    
+                            </div>
+                            <div class="tab-pane fade" id="nav-worldMap" role="tabpanel" aria-labelledby="nav-worldMap-tab" tabindex="0">
+                                <div id="canvasWorldMap"></div>                                    
+                            </div>
+                            <div class="tab-pane fade" id="nav-franceMap" role="tabpanel" aria-labelledby="nav-franceMap-tab" tabindex="0">
+                                <div id="canvasFranceMap"></div>                                                                    
+                            </div>
+                          </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="mt-auto text-white-50">
+            <p style="padding-top: 6px;">Design by <a href="https://samszo.univ-paris8.fr/" class="text-white">Samuel
+                    Szoniecky</a>
+                <a target="_blank" href="https://www.univ-paris8.fr/EA-349-Laboratoire-Paragraphe">
+                    <img style="height: 40px;" src="assets/img/logo-paragraphe-blanc.svg"
+                        alt="Laboratoire Paragraphe" />
+                </a>
+                <a target="_blank" href="https://github.com/samszo/IAHAL/">
+                    <button type="button" class="btn btn-danger">
+                        <i class="fa-brands fa-github fa-2xl"></i>
+                    </button>
+                </a>
+                Template for <a href="https://getbootstrap.com/" class="text-white">Bootstrap</a>, by <a
+                    href="https://twitter.com/mdo" class="text-white">@mdo</a>.
+            </p>
+        </footer>
+
+    </div>
+
+
+    <div id="loading-container">
+        <div class="loadingio-spinner-double-ring-4dols36ufwg" id="ws-loading">
+            <div class="ldio-6pd26u1x99x">
+                <div></div>
+                <div></div>
+                <div>
+                    <div></div>
+                </div>
+                <div>
+                    <div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import {modal} from './assets/js/modal.js';
+        import {appUrl} from './assets/js/appUrl.js';
+        import {auth} from './assets/js/auth.js';
+        import {pa} from './assets/js/authParams.js';
+        import {worflow} from './assets/js/workflow.js';
+
+        let a = new auth(pa), wf,
+            m=new modal({'size':'modal-lg'}), hotRes=false,
+            rectFooter = d3.select('footer').node().getBoundingClientRect(),
+            rectHeader = d3.select('header').node().getBoundingClientRect(),
+            rectResult = d3.select('#workflow').node().getBoundingClientRect(),
+            rectDiag = d3.select('#nav-tabContent').node().getBoundingClientRect(),
+            hTableur = window.innerHeight-rectFooter.height-rectResult.top,
+            pUrl = new appUrl({'url':new URL(document.location)}),
+            urlQ = pUrl.params && pUrl.params.has('q') ? pUrl.params.get('q') : '';
+
+        a.getUser(u=>{
+            console.log("Utilisateur connecté :", u);
+        })
+            
+        if(urlQ){
+            d3.select('#inpWorflow').node().value= pUrl.toString();
+            execQuery(pUrl.toString());
+        }
+            
+        //dimensionnement du tableur
+        d3.select('#resultWorkflow').style('height',hTableur+"px");
+        rectDiag.height = window.innerHeight-rectFooter.height-rectDiag.top;
+
+        //chargement des menus
+        d3.json("assets/data/worflows.json").then(data=>{
+            setMenu('#ddWorflow',data,'label',showWorflow);
+        })
+        
+        d3.selectAll('button[data-bs-toggle="tab"]').on('click', event => {
+            activeDiag = event.target.id;
+        })
+        
+        function showWorflow(e,d,q){
+            wf = new worflow({auth:a,data:d
+                ,cont:d3.select('#workflow')});
+        }
+        
+        function setTable(data, cont, hot, menu){
+            if(hot){                
+                hot.clear();
+                if(data)hot.updateData(data);
+                else hot.updateData([]);
+                //hot.render()
+            }else{
+                let headers = Object.keys(data[0]),
+                    menuContext = menu ? {
+                        callback(key, selection, clickEvent) {
+                          // Common callback for all options
+                          console.log(key, selection, clickEvent);
+                        },
+                        items: {
+                          complexity: { // Own custom option
+                            name() { // `name` can be a string or a function
+                              return `<button type="button" id="btnComplexityItem" class="btn btn-sm btn-danger">
+                                        <i class="fa-solid fa-calculator"></i>
+                                    </button>`;
+                            },
+                            callback(key, s, e) { // Callback for specific option
+                                let r = this.getDataAtRow(s[0].start.row);
+                                getData(urlApiOmk+'id='+r[1]);
+                            }
+                          }
+                        }
+                      } : menu;
+                hot = new Handsontable(cont.append('div').node(), {
+                    className: 'htDark',
+                    afterGetColHeader: function(col, TH){
+                        TH.className = 'darkTH'
+                    },
+                    colHeaders: true,
+                    rowHeaders: true,
+                    data:data,
+                    colHeaders: headers,
+                    height: hTableur,
+                    width: '100%',
+                    licenseKey: 'non-commercial-and-evaluation',
+                    customBorders: true,
+                    dropdownMenu: true,
+                    multiColumnSorting: true,
+                    filters: true,
+                    selectionMode:'single',
+                    columns: getCellEditor(headers),
+                    allowInsertColumn: false,
+                    copyPaste: false,
+                    contextMenu: menuContext,
+                    search: true,                        
+                });
+            }
+            return hot;
+        }
+
+    </script>
+
+</body>
+
+</html>
