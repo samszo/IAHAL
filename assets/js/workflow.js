@@ -10,8 +10,8 @@ export class worflow {
         this.wait = new loader();
         this.cont = params.cont ? params.cont : d3.select('body');
         this.data = params.data ? params.data : false;
-        var graph;
-
+        var graph, colorDeb = "#dc3545", colorFin = "#043e27ff", colorWait = "#2f2066ff",
+            steps={};
         this.init = function () {
             if(!this.data)return;
             mermaid.initialize({ startOnLoad: false,theme: 'dark', });
@@ -23,18 +23,20 @@ export class worflow {
                     fetch('https://unpkg.com/@iconify-json/fa@1/icons.json').then((res) => res.json())
                 },
               ]);
-            this.cont.append('h4').html(this.data.label);
             initMermaid();
-
         }
 
         function clearMermaid(){
+            me.cont.select('h4').remove();
+            me.cont.select('p').remove();
             me.cont.selectAll('pre').remove();
-            graph = me.cont
-                .append('pre').attr('id','mermaidGraph').attr("class","mermaid");
         }
         function initMermaid(){
             clearMermaid();
+            me.cont.append('h4').html(me.data.label);
+            me.cont.append('p').html('Cliquez sur le bloc rouge pour commencer');
+            graph = me.cont
+                .append('pre').attr('id','mermaidGraph').attr("class","mermaid");
             d3.text(me.data.mermaid).then(text=>{
                 generateMermaid(text);
             }).catch(err=>{
@@ -50,6 +52,7 @@ export class worflow {
                             }
                         }%%
                         flowchart TD
+                        Start[Sélectionner un workflow dans le menu]
                         `;
             generateMermaid(graphCode);
         }            
@@ -78,15 +81,38 @@ export class worflow {
 
 
         function addInteractivity(svgElement){
+            //initialise les étapes
+            steps = {};
             //ajoute l'intéraction avec les éléments
-            d3.select(svgElement).selectAll('g.node').style('cursor','pointer')
-                .on('click', function(event, d) {
-                    let id = d3.select(this).attr('id').replace('flowchart-','');
-                    //'flowchart-PE_2241-55'
-                    console.log(id);
-                });                    
+            me.data.steps.forEach((ev,i)=>{
+                let sBloc=d3.select(ev.path);
+                if(ev.event=="click"){
+                    //ajoute l'événement au clic
+                    sBloc.on('click', (e,d)=> {
+                            ev.function ? execEvent(sBloc,ev,i) : null;
+                        })
+                }
+                //modifie les couleurs des blocs
+                sBloc.attr('style',"fill:"+(ev.function=="start"?colorDeb:colorWait)+";").style('cursor','pointer');            
+            });
+
         }
 
+        async function execEvent(b, ev, i){
+            console.log("execEvent", ev);
+            if(steps[i])return;   
+            steps[i]=ev;                 
+            switch (ev.function) {
+                case "start":
+                    b.attr('style',"fill:"+colorFin+";")
+                    let nextStep = me.data.steps[i+1];
+                    execEvent(d3.select(nextStep.path),nextStep,i+1);
+                    break;            
+                default:
+                    break;
+            }
+
+        }
 
         function execQuery(q){
             let url = q.substring(0,1)=="?" ?apiHAL+q : apiHAL+"?"+q 

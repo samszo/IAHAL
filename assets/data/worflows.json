@@ -7,20 +7,20 @@
     {"label":"Enregistrer dans OMK les données extraites de HAL pour H2PTM",
         "worflow":"JSON_to_OMK",
         "mermaid":"assets/data/JSON_to_OMK.mm",
-        "events":[
-            {"event":"start","label":"Démarrage du worflow","path":"#JSON_to_OMK-0"},
-            {"event":"loadJSON","label":"Charge les données HAL","path":"#loadJSON-1"
+        "steps":[
+            {"event":"click","function":"start","label":"Démarrage du worflow","path":"#flowchart-JSON_to_OMK-0 > rect"},
+            {"function":"loadJSON","label":"Charge les données HAL","path":"#flowchart-loadJSON-1 > polygon"
                 ,"jsons":[
-                    {"url":"assets/data/dataHalOrgH2PTM.json","path":"dbStructures-3"},
-                    {"url":"assets/data/dataHalAutH2PTM.json","path":"dbAuteurs-5"},
-                    {"url":"assets/data/dataHalKeywordH2PTM.json","path":"dbTags-7"},
-                    {"url":"assets/data/dataHalDepotH2PTM.json","path":"dbDepots-9"}
+                    {"url":"assets/data/dataHalOrgH2PTM.json","path":"flowchart-dbStructures-3 path"},
+                    {"url":"assets/data/dataHalAutH2PTM.json","path":"flowchart-dbAuteurs-5 path"},
+                    {"url":"assets/data/dataHalKeywordH2PTM.json","path":"flowchart-dbTags-7 path"},
+                    {"url":"assets/data/dataHalDepotH2PTM.json","path":"flowchart-dbDepots-9 path"}
                 ]
             },
-            {"event":"dataHalProcessed","label":"Données HAL traitées"},
-            {"event":"dataOmkLoaded","label":"Données OMK chargées"},
-            {"event":"dataOmkUpdated","label":"Données OMK mises à jour"},
-            {"event":"end","label":"Fin du worflow"}            
+            {"function":"dataHalProcessed","label":"Données HAL traitées","path":"#flowchart-importRefOmk-11 > polygon"},
+            {"function":"dataOmkLoaded","label":"Données OMK chargées"},
+            {"function":"dataOmkUpdated","label":"Données OMK mises à jour"},
+            {"function":"end","label":"Fin du worflow"}            
         ]
     }
 ]
