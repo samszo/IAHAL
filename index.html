@@ -43,7 +43,7 @@
                                     <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
                                         aria-expanded="false">
                                         <i class="fa-solid fa-clipboard-question"></i>
-                                        <span id="selectQuery">Worflow</span>
+                                        <span id="selectQuery">Worflows</span>
                                     </a>
                                     <ul id="ddWorflow" class="dropdown-menu">
                                     </ul>
@@ -133,6 +133,7 @@
         import {auth} from './assets/js/auth.js';
         import {pa} from './assets/js/authParams.js';
         import {worflow} from './assets/js/workflow.js';
+        import {dataHAL} from './assets/js/dataHAL.js';     
 
         let a = new auth(pa), wf,
             m=new modal({'size':'modal-lg'}), hotRes=false,
@@ -167,8 +168,12 @@
         })
         
         function showWorflow(e,d,q){
-            wf = new worflow({auth:a,data:d
-                ,cont:d3.select('#workflow')});
+            if(d.worflow=="HAL_to_JSON"){
+                let rsHal = new dataHAL({'csv':d.csv, 'fields':d.fields});            
+            }else{
+                wf = new worflow({auth:a,data:d
+                    ,cont:d3.select('#workflow')});
+            }
         }
         
         function setTable(data, cont, hot, menu){

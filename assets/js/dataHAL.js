@@ -16,7 +16,7 @@ export class dataHAL {
         this.urlTag = params.urlTag;
         this.urlOrg = params.urlTag;
         this.urlActDocTag = params.urlActDocTag;
-        this.fields = params.fields ? params.fields : "&fl=authIdHal_s,halId_s,keyword_s,title_s,submitType_s,subTitle_s,language_s,abstract_s,domainAllCode_s,docid,uri_s,producedDate_s,publicationDate_s,authFirstName_s,authLastName_s,authStructId_i,docType_s";
+        this.fields = params.fields ? params.fields : "&fl=authIdHal_s,authIdForm_i,halId_s,keyword_s,title_s,submitType_s,subTitle_s,language_s,abstract_s,domainAllCode_s,docid,uri_s,producedDate_s,publicationDate_s,authFirstName_s,authLastName_s,authStructId_i,docType_s";
         this.csv = params.csv;
         this.wait = new loader();
         this.endLoadData = params.endLoadData ? params.endLoadData : false;
@@ -24,7 +24,10 @@ export class dataHAL {
             apiHALrefAut = "https://api.archives-ouvertes.fr/ref/author",
             apiHALrefAutStr = "https://api.archives-ouvertes.fr/search/authorstructure",
             apiHALrefStr = "https://api.archives-ouvertes.fr/ref/structure",
-            keys = [], dataCsv=[];
+            apiHALrefDom = "https://api.archives-ouvertes.fr/ref/domain",
+            //problème de CORS policy sparqlHAL = "http://sparql.archives-ouvertes.fr/sparql?format=application/sparql-results+json&timeout=0&debug=on&run=+Run+Query+&query=",
+            sparqlHAL = "sparqlHAL.php?q=",
+            keys = [], dataCsv=[], reprise;
 
         this.init = function () {
             if(me.urlData){
@@ -85,6 +88,7 @@ export class dataHAL {
             me.dataDoc = [];
             me.dataTag = [];
             me.dataActDocTag = [];
+            reprise = false;
             d3.csv(me.csv).then(data=>{
                 dataCsv = data;
                 getDataDoc(0);                
@@ -92,20 +96,32 @@ export class dataHAL {
         }
 
         async function getDataDoc(num){
+            /*gestion des reprises
+            plus compliqué car le json final est global
+            il faudrait faire une importation doc par doc dans workflow.js
+            if(!reprise && dataCsv[num].halId_s!='hal-05196107'){
+                getDataDoc(num+1);
+                return;
+            }else{
+                console.log("reprise à ",dataCsv[num].halId_s);
+                reprise = true;
+            }
+            */
+           
             let d = dataCsv[num],
             hal = await d3.json(apiHAL+"?q=halId_s:"+d.halId_s+me.fields),
             ref = hal.response.docs[0];
             await getDataAut(0,ref);
-            getKey(d.halId_s,me.dataDoc,
+            await getKey(d.halId_s,me.dataDoc,
                 {'idHal':d.halId_s,'titre':ref.title_s,'uri_s':ref.uri_s,'publicationDate_s':ref.publicationDate_s,'authIdHal_s':ref.authIdHal_s,'authFullName_s':ref.authFullName_s,'keyword_s':ref.keyword_s,'title_s':ref.title_s,'docid':ref.docid,'producedDate_s':ref.producedDate_s,'publicationDate_s':ref.publicationDate_s}
             );
-            addDocActTag(ref,'keyword_s');
-            addDocActTag(ref,'domainAllCode_s');
-            addDocActTag(ref,'language_s');
-            addDocActTag(ref,'submitType_s');
-            addDocActTag(ref,'docType_s');                            
+            await addDocActTag(ref,'keyword_s');
+            await addDocActTag(ref,'domainAllCode_s');
+            await addDocActTag(ref,'language_s');
+            await addDocActTag(ref,'submitType_s');
+            await addDocActTag(ref,'docType_s');                            
             if(num<(dataCsv.length-1)){
-                getDataDoc(num+1);
+                await getDataDoc(num+1);
             }else{
                 me.wait.hide();
                 saveFile(JSON.stringify(me.dataAct),'dataHalAut.json');
@@ -117,53 +133,61 @@ export class dataHAL {
         }
         async function getDataAut(i,ref){
             let idAut = await getKey(ref.authFirstName_s[i]+ref.authLastName_s[i],me.dataAct,
-                {'prenom':ref.authFirstName_s[i],'nom':ref.authLastName_s[i]}
+                {'prenom':ref.authFirstName_s[i],'nom':ref.authLastName_s[i],'idPerson':ref.authIdPerson_i[i]}
             );
             if(i<(ref.authLastName_s.length-1)){
                 await getDataAut(i+1,ref);
             }   
         }
 
-        function addDocActTag(data, champ){
+        async function addDocActTag(data, champ, iAut=0, iChamp=0, iTag=0){
             if(data[champ]){
                 if(Array.isArray(data[champ])){
-                    data[champ].forEach(tag=>{
-                        data.authFirstName_s.forEach((n,i)=>{
-                            if(!Array.isArray(tag)) tag=[tag];
-                            tag.forEach(async t=>{
-                                me.dataActDocTag.push({
-                                    'doc':await getKey(data.halId_s),
-                                    'act':await getKey(data.authFirstName_s[i]+data.authLastName_s[i]),
-                                    'tag':await getKey(champ+t,me.dataTag,{'type':champ,'val':t})
-                                });
-                                //console.log('link added for '+data.halId_s+' / '+data.authFirstName_s[i]+data.authLastName_s[i]+' / '+t);        
-                            })
-                        })
-                    })
-                } else {
-                    data.authFirstName_s.forEach(async (n,i)=>{
+                    let c = data[champ][iChamp],
+                        firstName = data.authFirstName_s[iAut],
+                        lastName = data.authLastName_s[iAut],
+                        t = Array.isArray(c) ? c[iTag]: c;
                         me.dataActDocTag.push({
                             'doc':await getKey(data.halId_s),
-                            'act':await getKey(data.authFirstName_s[i]+data.authLastName_s[i]),
-                            'tag':await getKey(champ+data[champ],me.dataTag,{'type':champ,'val':data[champ]})
-                        });        
-                        //console.log('link added for '+data.halId_s+' / '+data.authFirstName_s[i]+data.authLastName_s[i]+' / '+t);        
-                    })
+                            'act':await getKey(firstName+lastName),
+                            'tag':await getKey(champ+t,me.dataTag,{'type':champ,'val':t})
+                        });
+                        if(Array.isArray(c) && iTag<(c.length-1)){
+                            await addDocActTag(data, champ, iAut, iChamp, iTag+1);
+                        }else{
+                            if(iChamp<(data[champ].length-1)){
+                                await addDocActTag(data, champ, iAut, iChamp+1, 0);
+                            }else{
+                                if(iAut<(data.authFirstName_s.length-1)){
+                                    await addDocActTag(data, champ, iAut+1, 0, 0);
+                                }
+                            }
+                        }
+                }else{
+                    let tag = data[champ];
+                    let firstName = data.authFirstName_s[iAut],
+                        lastName = data.authLastName_s[iAut];
+                    me.dataActDocTag.push({
+                        'doc':await getKey(data.halId_s),
+                        'act':await getKey(data.authFirstName_s[iAut]+data.authLastName_s[iAut]),
+                        'tag':await getKey(champ+tag,me.dataTag,{'type':champ,'val':tag})
+                    });        
+                    if(iAut<(data.authFirstName_s.length-1)){
+                        await addDocActTag(data, champ, iAut+1, 0, 0);
+                    }
                 }
             }
 
         }
 
+        
         async function getKey(k,rs=false,r=false){
             if(keys[k]==undefined){
                 if(!r.id)r.id=rs.length;
                 if(rs==me.dataOrg && k.indexOf('#')>-1){
-                    let org = await d3.json(apiHALrefStr+"?q=docid:"+k.replace('#struct-',''));
-                    rs.push({
-                        'nom':org.response.docs[0].label_s,
-                        'idOrg':k,
-                        'docid':org.response.docs[0].docid
-                        });
+                    await me.getOrgInfosByIdOrg(k.replace('#struct-',''));
+                }else if(rs==me.dataTag && r.type=='domainAllCode_s'){
+                    await me.getKeywordInfosById(r.val);
                 }else{
                     rs.push(r);
                     if(rs==me.dataAct){
@@ -176,22 +200,22 @@ export class dataHAL {
         }
 
         async function addActInfos(rs){
-            /*récupère les infos de l'auteur
-            d3.json(apiHALrefAut+"?q=fullName_t:"+rs.nom+"&fq=fullName_t:"+rs.nom+"&fq=firstName_t:"+rs.prenom+"&fl=*Id_s,idHal_s,docid").then(aut=>{
-                rs.idsHal=aut.response.docs;
-            });
-            */    
-            const request = new XMLHttpRequest();
-            request.open("GET", apiHALrefAut+"?q=fullName_t:"+rs.nom+"&fq=fullName_t:"+rs.nom+"&fq=firstName_t:"+rs.prenom+"&fl=*Id_s,idHal_s,docid", false); // `false` makes the request synchronous
-            request.send(null);            
-            if (request.status === 200) {
-                rs.idsHal=JSON.parse(request.responseText);
-            }            
-            
+            let q = rs.idPerson ? apiHALrefAut+"?q=person_i:"+rs.idPerson+"&fq=valid_s:PREFERRED&fl=*" :
+                apiHALrefAut+"?q=fullName_t:"+rs.nom+"&fq=fullName_t:"+rs.nom+"&fq=firstName_t:"+rs.prenom+"&fq=valid_s:PREFERRED&fl=*",
+                rsHal=await d3.json(q);
+            if(!rsHal.error && rsHal.response.docs && rsHal.response.docs.length>0){
+                rs.full = rsHal.response.docs[0];
+            }
+            //récupère les intérets de l'auteur via sparql
+            if(rs.full && rs.full.person_i){
+                rs.interests = await me.getSparqlAuteursInterest(rs.full.person_i);
+            }
+
             //récupère les infos de la structure
             let str, idStr = '';
             rs.idsOrg=[];
             //ATTENTION on passe par l'xml car le json ne renvoie pas toutes les infos
+            const request = new XMLHttpRequest();
             request.open("GET", apiHALrefAutStr+"?wt=xml&lastName_t="+rs.nom+"&firstName_t="+rs.prenom, false); // `false` makes the request synchronous
             request.send(null);            
             if (request.status === 200) {
@@ -199,10 +223,14 @@ export class dataHAL {
                 if(result.org){
                     if(Array.isArray(result.org)){
                         result.org.forEach(async o=>{
-                            await setOrgInfos(o,rs);
+                            await me.getOrgInfosByIdOrg(o['xml:id'].replace('#','').replace('struct-',''));
+                            //await setOrgInfos(o,rs);
+                            rs.idsOrg.push(o['xml:id'].replace('#','').replace('struct-',''));
                         })
                     }else{
-                        setOrgInfos(result.org,rs);
+                        await me.getOrgInfosByIdOrg(result.org['xml:id'].replace('#','').replace('struct-',''));
+                        //setOrgInfos(result.org,rs);
+                        rs.idsOrg.push(result.org['xml:id'].replace('#','').replace('struct-',''));
                     }
                 }
             } 
@@ -231,6 +259,81 @@ export class dataHAL {
                 rs.idsOrg.push(idStr);
             }
         }
+               
+        this.getOrgInfosByIdOrg = async function(idOrg){
+            let org = keys[idOrg];            
+            if(!org){
+                //recherche dans HAL
+                let json = await d3.json(apiHALrefStr+"/?q=docid:"+idOrg+"&wt=json&fl=*");
+                if(!json.error && json.response.docs && json.response.docs.length>0){
+                    let o = json.response.docs[0];
+                    org = {
+                        'nom':o.name_s,
+                        'docid':o.docid,
+                        'idOrg':idOrg,
+                        'desc':o.acronym_s ? o.acronym_s:"",
+                        'address':o.address_s ? o.address_s:"",
+                        'country':o.country_s ? o.country_s : "",
+                        "idref":o.idref_s ? o.idref_s[0] : "",
+                        "rnsr":o.rnsr_s ? o.rnsr_s[0] : "",
+                        "isni":o.isni_s ? o.isni_s[0] : "",
+                        "ror":o.ror_s ? o.ror_s[0] : "",
+                        "parents":o.parentDocid_i ? o.parentDocid_i : []
+                    };
+                    getKey(idOrg,me.dataOrg,org);
+                    //ajoute les parents
+                    org.parents.forEach(pIdOrg=>me.getOrgInfosByIdOrg(pIdOrg));
+                }
+            }
+            return org;
+        }
+
+        this.getKeywordInfosById = async function(code,id=false){
+            let kw = keys[id ? id : code];            
+            if(!kw){
+                //recherche dans HAL
+                let url = id ? apiHALrefDom+"/?q=docid:"+id+"&wt=json&fl=*" : apiHALrefDom+"/?q=code_s:"+code+"&wt=json&fl=*",
+                    json = await d3.json(url);
+                /*ATTENTION il y a des différences entre l'API ref/domain et sparqlHAL : 
+                il existe des subjects qui ne sont pas dans l'API
+                par exemple : https://data.hal.science/subject/shs.info.hype
+                */
+                if(!json.error && json.response.docs && json.response.docs.length>0){
+                    let o = json.response.docs[0];
+                    kw = {
+                        'nom':o.fr_domain_s,
+                        'docid':o.docid,
+                        'code':o.code_s,
+                        'level':o.level_i ? o.level_i:"",
+                        "parent":o.parent_i ? o.parent_i : "",
+                        "type":'domain'
+                    };
+                    await getKey(id ? id : code,me.dataTag,kw);
+                    //ajoute le parent
+                    if(kw.parent){
+                        await me.getKeywordInfosById(code,kw.parent);
+                    }
+                    kw = keys[id ? id : code];                    
+                }else{
+                    let arrcode = code.split('.'),
+                        parentCode = arrcode.slice(0,arrcode.length-1).join('.');
+                    kw = {
+                        'nom':code,
+                        'code':code,
+                        'level':arrcode.length,
+                        "type":'domain'
+                    };
+                    if(parentCode){
+                        let parentKw = await me.getKeywordInfosById(parentCode);
+                        kw.parent = me.dataTag[parentKw].docid;
+                    }                   
+                    await getKey(code,me.dataTag,kw);
+                    kw = keys[id ? id : code];                    
+                }
+            }
+            return kw;
+        }
+
 
         function parseXml(xml, arrayTags) {
             let dom = null;
@@ -270,6 +373,44 @@ export class dataHAL {
 
             return result;
         }        
+
+        this.getSparqlAuteursInterest = async function(idHal){
+            let qInt = `SELECT ?int
+, ?pl
+, ?scheme
+, ?id
+WHERE {
+<https://data.archives-ouvertes.fr/author/`+idHal+`> foaf:interest ?int.
+?int skos:prefLabel ?pl filter (lang(?pl) = "fr").
+?int skos:inScheme ?scheme.
+?int dc:identifier ?id
+}`,
+                qTopInt = `SELECT ?ti WHERE {
+                    <https://data.archives-ouvertes.fr/author/`+idHal+`> foaf:topic_interest ?ti filter (lang(?ti) = "fr")
+                }`,
+            ints = await getSparqlData(qInt),
+            topics = await getSparqlData(qTopInt),
+            rs = {
+                'interests':ints.results.bindings.map(i=>{return {"nom":i.pl.value,"id":i.id.value,"uri":i.int.value};})
+                ,'topics':topics.results.bindings.map(i=>i.ti.value)
+            };
+            //enregistre les mots clefs dans les tags
+            for(let i=0;i<rs.interests.length;i++){
+                let kw = rs.interests[i];
+                await getKey('domainAllCode_s'+kw.id,me.dataTag,{'type':'domainAllCode_s','val':kw.id});
+            }
+            for(let i=0;i<rs.topics.length;i++){
+                let kw = rs.topics[i];
+                await getKey('keyword_s'+kw,me.dataTag,{'type':'keyword_s','val':kw});
+            }
+            return rs;
+        }
+        
+        async function getSparqlData(query) {
+            let url = sparqlHAL+encodeURIComponent(query),
+                rs = await d3.json(url);
+            return rs;
+        }
 
         function saveFile(fileContent,fileName){
             var bb = new Blob([fileContent ], { type: 'text/plain' });

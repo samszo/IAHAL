@@ -7,7 +7,7 @@ export class omk {
         this.ident = params.ident ? params.ident : false;
         this.mail = params.mail ? params.mail : false;
         this.api = params.api ? params.api : false;
-        this.vocabs = params.vocabs ? params.vocabs : ['dcterms','fup8','bibo'];
+        this.vocabs = params.vocabs ? params.vocabs : ['dcterms','org','hal','skos','vcard','foaf'];
         this.loader = new loader();
         this.user = false;
         this.props = [];
@@ -255,10 +255,16 @@ export class omk {
             return rs;
         }
 
-        this.searchItems = function (query, cb=false, sync=true){
+        this.searchItems = function (query, cb=false, sync=true, key=false){
+            key = key ? key : query;
+            if(me.queries[key]){
+                console.log("from cache",key);
+                return me.queries[key];
+            }
             let url = me.api+'items?'+query,rs; 
             if(sync){
                 rs = syncRequest(url);
+                me.queries[key]=rs;
                 if(cb)cb(rs);                    
             }
             else
