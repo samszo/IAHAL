@@ -1,47 +1,213 @@
 [
-    {"label":"Extractions des données HAL de la collection H2PTM",
-        "worflow":"HAL_to_JSON",
-        "csv":"assets/data/refHalH2PTM.csv",
-        "fields":"&wt=json&rows=100000&sort=producedDateY_i%20desc&fl=halId_s,title_s,authIdHal_s,authIdPerson_i,authFullName_s,authLastName_s,authFirstName_s,producedDate_s,producedDateY_i,docType_s,peerReviewing_s,invitedCommunication_s,subTitle_s,bookTitle_s,journalTitle_s,volume_s,issue_s,page_s,publisher_s,doiId_s,uri_s,authorityInstitution_s,number_s,serie_s,conferenceTitle_s,city_s,country_s,conferenceStartDate_s,conferenceEndDate_s,lectureName_s,reportType_s,lectureType_s,submitType_s,openAccess_bool,wosId_s,pubmedId_s,audience_s,otherType_s,authQuality_s,authIdFullName_fs,popularLevel_s,authIdHasPrimaryStructure_fs,linkExtId_s,language_s,keyword_s,domainAllCode_s,publicationDate_s"
-    },    
-    {"label":"Enregistrer dans OMK les données extraites de HAL pour H2PTM",
-        "worflow":"JSON_to_OMK",
-        "mermaid":"assets/data/JSON_to_OMK.mm",
-        "steps":[
-            {"event":"click","function":"start","label":"Démarrage du worflow","path":"#flowchart-JSON_to_OMK-0 > rect"},
-            {"function":"loadJSON","label":"Charge les données HAL","path":"#flowchart-loadJSON-1 > polygon"
-                ,"jsons":[
-                    {"url":"assets/data/dataHalOrgH2PTM.json","path":"#flowchart-dbStructures-3 path"},
-                    {"url":"assets/data/dataHalKeywordH2PTM.json","path":"#flowchart-dbTags-5 path"},
-                    {"url":"assets/data/dataHalAutH2PTM.json","path":"#flowchart-dbAuteurs-7 path"},
-                    {"url":"assets/data/dataHalDepotH2PTM.json","path":"#flowchart-dbDepots-9 path"}
+    {
+        "label": "Extractions des données HAL de la collection H2PTM",
+        "worflow": "HAL_to_JSON",
+        "csv": "assets/data/refHalH2PTM.csv",
+        "fields": "&wt=json&rows=100000&sort=producedDateY_i%20desc&fl=audience_s,authFirstName_s,authFullName_s,authIdFullName_fs,authIdHal_s,authIdHasPrimaryStructure_fs,authIdPerson_i,authLastName_s,authorityInstitution_s,authQuality_s,bookTitle_s,city_s,conferenceEndDate_s,conferenceStartDate_s,conferenceTitle_s,country_s,docid,docType_s,doiId_s,domainAllCode_s,en_abstract_s,en_keyword_s,en_title_s,files_s,fr_abstract_s,fr_keyword_s,fr_title_s,halId_s,invitedCommunication_s,isbn_s,issue_s,journalTitle_s,language_s,lectureName_s,lectureType_s,linkExtId_s,number_s,openAccess_bool,otherType_s,page_s,peerReviewing_s,popularLevel_s,producedDate_s,producedDateY_i,publicationDate_s,publisher_s,pubmedId_s,reportType_s,scientificEditor_s,serie_s,structId_i,submitType_s,subTitle_s,title_s,uri_s,volume_s,wosId_s"
+    },
+    {
+        "label": "Enregistrer dans OMK les données extraites de HAL pour H2PTM",
+        "worflow": "JSON_to_OMK",
+        "mermaid": "assets/data/JSON_to_OMK.mm",
+        "steps": [
+            {
+                "event": "click",
+                "function": "start",
+                "label": "Démarrage du worflow",
+                "path": "#flowchart-JSON_to_OMK-0 > rect"
+            },
+            {
+                "function": "loadJSON",
+                "label": "Charge les données HAL",
+                "path": "#flowchart-loadJSON-1 > polygon",
+                "jsons": [
+                    {
+                        "url": "assets/data/dataHalOrgH2PTM.json",
+                        "path": "#flowchart-dbStructures-3 path"
+                    },
+                    {
+                        "url": "assets/data/dataHalKeywordH2PTM.json",
+                        "path": "#flowchart-dbTags-5 path"
+                    },
+                    {
+                        "url": "assets/data/dataHalAutH2PTM.json",
+                        "path": "#flowchart-dbAuteurs-7 path"
+                    },
+                    {
+                        "url": "assets/data/dataHalDepotH2PTM.json",
+                        "path": "#flowchart-dbDepots-9 path"
+                    }
                 ]
             },
-            {"function":"dataHalToOmk","params":[{"pathData":"$..steps[1].jsons[0].data","rt":"structure"},{"pathData":"steps[1].jsons[1].data","rt":"concept"}],"label":"Import les données dans OMK","path":"#flowchart-importRefOmk-11 > polygon"},
-            {"function":"dataOmkLoaded","label":"Données OMK chargées","path":"#flowchart-dbOmk-15 > path"},
-            {"function":"showItems","params":[{"pathData":"steps[1].jsons[0]..omk"},{"pathData":"steps[1].jsons[1]..omk"}], "label":"Affiches les donnée OMK","path":"#flowchart-showItems-17 > polygon"},
-            {"function":"replaceIds","params":[
-                {"pathData":"steps[1].jsons[2].data.*"
-                ,"replace":[
-                    {"omkSrc":"resource_class_id[]=413&property[0][joiner]=and&property[0][property]=10&property[0][type]=eq&property[0][text]="
-                        ,"pathSrc":"$.idsOrg.*","dst":"foaf:member"}
-                    ,{"omkSrc":"resource_class_id[]=409&property[0][joiner]=and&property[0][property]=539&property[0][type]=eq&property[0][text]=domain&property[1][joiner]=and&property[1][property]=4&property[1][type]=eq&property[1][text]="
-                        ,"pathData":"steps[1].jsons[2].data","pathSrc":"$.interests.interests..id","dst":"foaf:interest"}
-                    ,{"omkSrc":"resource_class_id[]=409&property[0][joiner]=and&property[0][property]=539&property[0][type]=eq&property[0][text]=keyword&property[1][joiner]=and&property[1][property]=538&property[1][type]=eq&property[1][text]="
-                        ,"pathData":"steps[1].jsons[2].data","pathSrc":"$.interests.topics.*","dst":"foaf:topic_interest"}
-                ]
-                ,"path":["#flowchart-replaceId-19 > polygon","#flowchart-importAuteur-21 > polygon","#flowchart-importRefOmk-11 > polygon"],"rt":"auteur"
-                }
-                ],"label":"Remplace les identifiants HAL par ceux d'OMK"
-                },
-            {"function":"dataHalToOmk","params":[{"pathData":"steps[1].jsons[2].data","rt":"auteur"}],"label":"Import les données dans OMK","path":"#flowchart-importAuteur-21 > polygon"},
-            {"function":"dataOmkLoaded","label":"Données OMK chargées","path":"#flowchart-dbOmk-15 > path"},
-            {"function":"showItems","params":[{"pathData":"steps[1].jsons[2].omk"}],"label":"Affiches les donnée OMK","path":"#flowchart-showItems-17 > polygon"},
-            {"function":"replaceIds","params":[{"pathData":"steps[1].jsons[2].omk","src":"authFullName_s","dst":"hal:hasAuteur"}],"label":"Remplace les identifiants HAL par ceux d'OMK","path":"#flowchart-replaceId-19 > polygon"},
-            {"function":"dataHalToOmk","params":[{"pathData":"steps[1].jsons[3].data","rt":"depot"}],"label":"Import les données dans OMK","path":"#flowchart-importDepots-23 > polygon"},
-            {"function":"dataOmkLoaded","label":"Données OMK chargées","path":"#flowchart-dbOmk-15 > path"},
-            {"function":"showItems","params":[{"pathData":"steps[1].jsons[3].omk"}],"label":"Affiches les donnée OMK","path":"#flowchart-showItems-17 > polygon"},
-            {"function":"end","label":"Fin du worflow","path":"#flowchart-FIN-33 > rect"}            
+            {
+                "function": "dataHalToOmk",
+                "params": [
+                    {
+                        "pathData": "$..steps[1].jsons[0].data",
+                        "rt": "structure"
+                    },
+                    {
+                        "pathData": "steps[1].jsons[1].data",
+                        "rt": "concept"
+                    }
+                ],
+                "label": "Import les données dans OMK",
+                "path": "#flowchart-importRefOmk-11 > polygon"
+            },
+            {
+                "function": "dataOmkLoaded",
+                "label": "Données OMK chargées",
+                "path": "#flowchart-dbOmk-15 > path"
+            },
+            {
+                "function": "showItems",
+                "params": [
+                    {
+                        "pathData": "steps[1].jsons[0]..omk"
+                    },
+                    {
+                        "pathData": "steps[1].jsons[1]..omk"
+                    }
+                ],
+                "label": "Affiches les donnée OMK",
+                "path": "#flowchart-showItems-17 > polygon"
+            },
+            {
+                "function": "replaceIds",
+                "params": [
+                    {
+                        "pathData": "steps[1].jsons[2].data.*",
+                        "replace": [
+                            {
+                                "omkSrc": "resource_class_id[]=413&property[0][joiner]=and&property[0][property]=10&property[0][type]=eq&property[0][text]=",
+                                "pathSrc": "$.idsOrg.*",
+                                "dst": "foaf:member"
+                            },
+                            {
+                                "omkSrc": "resource_class_id[]=409&property[0][joiner]=and&property[0][property]=539&property[0][type]=eq&property[0][text]=domain&property[1][joiner]=and&property[1][property]=4&property[1][type]=eq&property[1][text]=",
+                                "pathSrc": "$.interests.interests..id",
+                                "dst": "foaf:interest"
+                            },
+                            {
+                                "omkSrc": "resource_class_id[]=409&property[0][joiner]=and&property[0][property]=539&property[0][type]=eq&property[0][text]=keyword&property[1][joiner]=and&property[1][property]=538&property[1][type]=eq&property[1][text]=",
+                                "pathSrc": "$.interests.topics.*",
+                                "dst": "foaf:topic_interest"
+                            }
+                        ],
+                        "path": [
+                            "#flowchart-replaceId-19 > polygon",
+                            "#flowchart-importAuteur-21 > polygon",
+                            "#flowchart-importRefOmk-11 > polygon"
+                        ],
+                        "rt": "auteur"
+                    }
+                ],
+                "label": "Remplace les identifiants HAL par ceux d'OMK"
+            },
+            {
+                "function": "dataHalToOmk",
+                "params": [
+                    {
+                        "pathData": "steps[1].jsons[2].data",
+                        "rt": "auteur"
+                    }
+                ],
+                "label": "Import les données dans OMK",
+                "path": "#flowchart-importAuteur-21 > polygon"
+            },
+            {
+                "function": "dataOmkLoaded",
+                "label": "Données OMK chargées",
+                "path": "#flowchart-dbOmk-15 > path"
+            },
+            {
+                "function": "showItems",
+                "params": [
+                    {
+                        "pathData": "steps[1].jsons[2].omk"
+                    }
+                ],
+                "label": "Affiches les donnée OMK",
+                "path": "#flowchart-showItems-17 > polygon"
+            },
+            {
+                "function": "replaceIds",
+                "params": [
+                    {
+                        "pathData": "steps[1].jsons[2].omk",
+                        "src": "authFullName_s",
+                        "dst": "hal:hasAuteur"
+                    }
+                ],
+                "label": "Remplace les identifiants HAL par ceux d'OMK",
+                "path": "#flowchart-replaceId-19 > polygon"
+            },
+            {
+                "function": "replaceIds",
+                "params": [
+                    {
+                        "pathData": "steps[1].jsons[2].data.*",
+                        "replace": [
+                            {
+                                "omkSrc": "property[0][joiner]=and&property[0][property]=10&property[0][type]=eq&resource_class_id[]=94&property[0][text]=",
+                                "pathSrc": "$.authIdHal_s.*",
+                                "dst": "foaf:member"
+                            },
+                            {
+                                "omkSrc": "resource_class_id[]=409&property[0][joiner]=and&property[0][property]=539&property[0][type]=eq&property[0][text]=domain&property[1][joiner]=and&property[1][property]=4&property[1][type]=eq&property[1][text]=",
+                                "pathSrc": "$.interests.interests..id",
+                                "dst": "foaf:interest"
+                            },
+                            {
+                                "omkSrc": "resource_class_id[]=409&property[0][joiner]=and&property[0][property]=539&property[0][type]=eq&property[0][text]=keyword&property[1][joiner]=and&property[1][property]=538&property[1][type]=eq&property[1][text]=",
+                                "pathSrc": "$.interests.topics.*",
+                                "dst": "foaf:topic_interest"
+                            }
+                        ],
+                        "path": [
+                            "#flowchart-replaceId-19 > polygon",
+                            "#flowchart-importAuteur-21 > polygon",
+                            "#flowchart-importRefOmk-11 > polygon"
+                        ],
+                        "rt": "auteur"
+                    }
+                ],
+                "label": "Remplace les identifiants HAL par ceux d'OMK"
+            },
+
+
+
+            {
+                "function": "dataHalToOmk",
+                "params": [
+                    {
+                        "pathData": "steps[1].jsons[3].data",
+                        "rt": "depot"
+                    }
+                ],
+                "label": "Import les données dans OMK",
+                "path": "#flowchart-importDepots-23 > polygon"
+            },
+            {
+                "function": "dataOmkLoaded",
+                "label": "Données OMK chargées",
+                "path": "#flowchart-dbOmk-15 > path"
+            },
+            {
+                "function": "showItems",
+                "params": [
+                    {
+                        "pathData": "steps[1].jsons[3].omk"
+                    }
+                ],
+                "label": "Affiches les donnée OMK",
+                "path": "#flowchart-showItems-17 > polygon"
+            },
+            {
+                "function": "end",
+                "label": "Fin du worflow",
+                "path": "#flowchart-FIN-33 > rect"
+            }
         ]
     }
 ]

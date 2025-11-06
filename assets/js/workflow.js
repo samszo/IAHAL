@@ -129,7 +129,7 @@ export class worflow {
                     d3.select(ev.path).attr('style',"fill:"+colorDeb+";");
                     ev.params.forEach(async p=>{
                         //pour les tests
-                        if(p.rt!="structure" && p.rt!="concept")
+                        if(p.rt!="structure" && p.rt!="concept" && p.rt!="auteur")
                             await addDataHalToOmk(p);
                         if(p==ev.params[ev.params.length -1]){
                             d3.select(ev.path).attr('style',"fill:"+colorFin+";");
@@ -152,14 +152,17 @@ export class worflow {
                     });
                     break;                      
                 case "replaceIds":
-                    ev.params.forEach(async p=>{
-                        d3.select(p.path[0]).attr('style',"fill:"+colorDeb+";");
-                        d3.select(p.path[2]).attr('style',"fill:"+colorDeb+";");
-                        await replaceIds(p,false,0);
-                        if(p==ev.params[ev.params.length -1]){
-                            execEvent(nextStep,i+1);
-                        }
-                    });
+                    //pour les tests
+                    if(p.rt!="structure" && p.rt!="concept" && p.rt!="auteur"){
+                        ev.params.forEach(async p=>{
+                            d3.select(p.path[0]).attr('style',"fill:"+colorDeb+";");
+                            d3.select(p.path[2]).attr('style',"fill:"+colorDeb+";");
+                            await replaceIds(p,false,0);
+                            if(p==ev.params[ev.params.length -1]){
+                                execEvent(nextStep,i+1);
+                            }
+                        });
+                    }
                     break;                      
                 default:
                     break;

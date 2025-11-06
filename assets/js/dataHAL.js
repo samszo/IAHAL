@@ -111,11 +111,14 @@ export class dataHAL {
             let d = dataCsv[num],
             hal = await d3.json(apiHAL+"?q=halId_s:"+d.halId_s+me.fields),
             ref = hal.response.docs[0];
+            //TODO ajouter les infos manquantes depuis le csv
+            //https://api.archives-ouvertes.fr/search/?q=halId_s:hal-01151337&wt=json&fl=docid,domainAllCode_s,fr_title_s,en_title_s,en_keyword_s,fr_keyword_s,fr_abstract_s,en_abstract_s,authIdPerson_i,authFullName_s,structId_i,docType_s,city_s,isbn_s,producedDate_s,files_s,page_s,country_s,language_s,conferenceTitle_s,scientificEditor_s,publisher_s,producedDate_s
             await getDataAut(0,ref);
-            await getKey(d.halId_s,me.dataDoc,
-                {'idHal':d.halId_s,'titre':ref.title_s,'uri_s':ref.uri_s,'publicationDate_s':ref.publicationDate_s,'authIdHal_s':ref.authIdHal_s,'authFullName_s':ref.authFullName_s,'keyword_s':ref.keyword_s,'title_s':ref.title_s,'docid':ref.docid,'producedDate_s':ref.producedDate_s,'publicationDate_s':ref.publicationDate_s}
+            await getKey(d.halId_s,me.dataDoc,ref
+                //{'idHal':d.halId_s,'titre':ref.title_s,'uri_s':ref.uri_s,'publicationDate_s':ref.publicationDate_s,'authIdHal_s':ref.authIdHal_s,'authFullName_s':ref.authFullName_s,'keyword_s':ref.keyword_s,'title_s':ref.title_s,'docid':ref.docid,'producedDate_s':ref.producedDate_s,'publicationDate_s':ref.publicationDate_s}
             );
-            await addDocActTag(ref,'keyword_s');
+            await addDocActTag(ref,'fr_keyword_s');
+            await addDocActTag(ref,'en_keyword_s');
             await addDocActTag(ref,'domainAllCode_s');
             await addDocActTag(ref,'language_s');
             await addDocActTag(ref,'submitType_s');
