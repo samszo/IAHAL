@@ -11,8 +11,10 @@ flowchart TD
     dbOmk-..->replaceId[["`Remplace les ids`"]]
     replaceId-..->importAuteur[["`Import auteurs`"]]
     replaceId-..->importDepots[["`Import dépôts`"]]
+    replaceId-..->importConf[["`Import conférences`"]]
     dbAuteurs-..->replaceId
-    dbDepots-..->replaceId
+    dbDepots-..->replaceId    
     importAuteur-..->dbOmk
     importDepots-..->dbOmk
+    importConf-..->dbOmk
     showItems -->FIN

@@ -151,18 +151,17 @@ export class worflow {
                         }
                     });
                     break;                      
-                case "replaceIds":
+                case "replaceIdsAndImport":
                     //pour les tests
-                    if(p.rt!="structure" && p.rt!="concept" && p.rt!="auteur"){
-                        ev.params.forEach(async p=>{
-                            d3.select(p.path[0]).attr('style',"fill:"+colorDeb+";");
-                            d3.select(p.path[2]).attr('style',"fill:"+colorDeb+";");
-                            await replaceIds(p,false,0);
-                            if(p==ev.params[ev.params.length -1]){
-                                execEvent(nextStep,i+1);
-                            }
-                        });
-                    }
+                    ev.params.forEach(async p=>{
+                        d3.select(p.path[0]).attr('style',"fill:"+colorDeb+";");
+                        d3.select(p.path[2]).attr('style',"fill:"+colorDeb+";");
+                        if(p.rt!="structure" && p.rt!="concept" && p.rt!="auteur" && p.rt!="conférence" && p.rt!="créateur")
+                            await replaceIdsAndImport(p,false,0);
+                        if(p==ev.params[ev.params.length -1]){
+                            execEvent(nextStep,i+1);
+                        }
+                    });
                     break;                      
                 default:
                     break;
@@ -170,14 +169,25 @@ export class worflow {
 
         }
 
-        async function replaceIds(p,dtDst,idDst){
+        async function replaceIdsAndImport(p,dtDst,idDst){
             dtDst = dtDst ? dtDst : JSONPath({path: p.pathData, json: me.data});
             let d = dtDst[idDst]; 
+            if(p.groupData){
+                dtDst = idDst==0 ? d3.groups(dtDst, d => d[p.groupData]) : dtDst;
+                d = dtDst[idDst][1][0];
+            }
+            if(p.groupDataFlat){
+                dtDst = idDst==0 ? Array.from(d3.group(dtDst.flatMap(d => d[p.groupDataFlat]),g=>g)) : dtDst;
+                d = dtDst[idDst];
+            }
             //replace les ids
             await d3.select(p.path[1]).attr('style',"fill:"+colorDeb+";");
             p.replace.forEach(r=>{
-                let dtHal = JSONPath({path: r.pathSrc, json: d});
+                let dtHal = p.groupDataFlat ? [d[0]] : JSONPath({path: r.pathSrc, json: d});
                 dtHal.forEach(src=>{
+                    if(r.splitSrc){
+                        src = src.split(r.splitSrc.sep)[r.splitSrc.idx];
+                    }
                     let dtSrc = me.auth.omk.searchItems(r.omkSrc+src,false,true,'replaceIds-'+r.dst+src);
                     if(dtSrc && dtSrc.length>0){
                         if(d[r.dst]==undefined)d[r.dst]=[];
@@ -193,7 +203,7 @@ export class worflow {
             await d3.select(p.path[1]).attr('style',"fill:"+colorFin+";");
             console.log("Item mis à jour dans OMK avec les nouveaux ids :"+idDst, d);
             if(idDst < dtDst.length -1 ){
-                await replaceIds(p,dtDst,idDst+1);
+                await replaceIdsAndImport(p,dtDst,idDst+1);
             }else{
                 await d3.select(p.path[2]).attr('style',"fill:"+colorFin+";");
                 return idDst;
@@ -236,9 +246,6 @@ export class worflow {
                     dtOmk = getOmkDataTemplate(h,p);
                     h.omk = await me.auth.omk.getsetResource(dtOmk);
                     break;
-                case "depots":
-                    dtOmk = {};
-                    break;                
                 default:
                     dtOmk = getOmkDataTemplate(h,p);
                     h.omk = await me.auth.omk.getsetResource(dtOmk);
@@ -326,8 +333,56 @@ export class worflow {
                             'index':(h.type ? h.type.replace("_s",""):"domaine")+"concept"+(h.val ? h.val : h.nom)
                         };
                     break;
-                case "depots":
-                    dtOmk = {};
+                case "conférence":
+                    dtOmk = {'rt':'conférence','c':'bibo:Conference',
+                            'dt':{"dcterms:title":h.conferenceTitle_s ? h.conferenceTitle_s : "Conférence sans titre",
+                                "dcterms:publisher":h.publisher_s ? h.publisher_s : "",
+                                "curation:dateStart":h.conferenceStartDate_s ? h.conferenceStartDate_s : "conférence sans date",
+                                "curation:dateEnd":h.conferenceEndDate_s ? h.conferenceEndDate_s : "",
+                                "bibo:editorList":h["bibo:editorList"],
+                                "vcard:country-name":h.country_s ? h.country_s : "",
+                                "vcard:adr":h.city_s ? h.city_s : "",
+                            },
+                            'verif':{'curation:dateStart':h.conferenceStartDate_s ? h.conferenceStartDate_s : "conférence sans date","dcterms:title":h.conferenceTitle_s ? h.conferenceTitle_s : "Conférence sans titre"},
+                            'index':"conférence"+(h.conferenceStartDate_s ? h.conferenceStartDate_s : "conférence sans date")
+                        };
+                    break;
+                case "créateur":
+                    dtOmk = {'rt':'créateur','c':'hal:Author',
+                            'dt':{"hal:structure":h["hal:structure"] ? h["hal:structure"] : "vide",
+                                "hal:person":h["hal:person"] ? h["hal:person"] : "vide",
+                                "dcterms:identifier":h[0],
+                            },
+                            'verif':{'dcterms:identifier':h[0]},
+                            'index':"créateur"+h[0]
+                        };
+                    break;                
+                case "document":
+                    dtOmk = {'rt':'document','c':'bibo:Document',
+                            'dt':{"dcterms:title":h.fr_title_s ? h.fr_title_s : h.title_s,
+                                "dcterms:date":h.producedDate_s ? h.producedDate_s : "",
+                                "hal:arXivId":h.arxivId_s ? h.arxivId_s : "",
+                                "hal:pubmed":h.pubmedId_s ? h.pubmedId_s : "",
+                                "hal:topic":h["hal:topic"],
+                                "dcterms:subject":h["dcterms:subject"],
+                                "bibo:pageStart":h.page_s ? h.page_s.split("-")[0] : "",
+                                "bibo:pageEnd":h.page_s ? h.page_s.split("-")[1] : "",
+                                "bibo:doi":h.doi_s ? h.doi_s : "",
+                                "bibo:abstract":h.fr_abstract_s ? h.fr_abstract_s : "",
+                                "dcterms:creator":h["dcterms:creator"],
+                                "bibo:isbn":h.isbn_s ? h.isbn_s : "",
+                                "dcterms:identifier":h.docid ? h.docid : "",
+                                "dcterms:isReferencedBy":h.halId_s,
+                                "dcterms:source":h["dcterms:source"],
+                                "dcterms:alternative":h.subTitle_s ? h.subTitle_s : "",
+                                "dcterms:bibliographicCitation":h.citationFull_s	 ? h.citationFull_s : "",
+                                "dcterms:language":h.language_s ? h.language_s : "",
+                                "dcterms:type":h.docType_s ? h.docType_s : "",
+                                "o:media":h.files_s ? h.files_s[0] : ""
+                            },
+                            'verif':{"dcterms:isReferencedBy":h.halId_s},
+                            'index':"doc"+h.halId_s
+                        };
                     break;                
                 default:
                     dtOmk = {};
@@ -336,17 +391,6 @@ export class worflow {
             return dtOmk;
         }   
 
-        function execQuery(q){
-            let url = q.substring(0,1)=="?" ?apiHAL+q : apiHAL+"?"+q 
-            queryHALold = queryHALold == "" ? url : queryHAL; 
-            queryHAL = url;
-            d3.json(queryHAL).then(data=>{
-                let cont = d3.select('#resultQuery');
-                cont.selectAll('div').remove();
-                rsHal = new dataHAL({'urlData':queryHAL,'showLoader':showLoader,'hideLoader':hideLoader});
-                setTable(data.response.docs,cont);
-            })
-        }
         this.init();
     }
 }

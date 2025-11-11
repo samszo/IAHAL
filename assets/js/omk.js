@@ -7,7 +7,7 @@ export class omk {
         this.ident = params.ident ? params.ident : false;
         this.mail = params.mail ? params.mail : false;
         this.api = params.api ? params.api : false;
-        this.vocabs = params.vocabs ? params.vocabs : ['dcterms','org','hal','skos','vcard','foaf'];
+        this.vocabs = params.vocabs ? params.vocabs : ['dcterms','org','hal','skos','vcard','foaf','bibo','curation'];
         this.loader = new loader();
         this.user = false;
         this.props = [];
@@ -364,8 +364,10 @@ export class omk {
                         fd[k]={'o:id':p['o:id']};            
                         break;
                     case 'o:media':
-                        if(!fd[k])fd[k]=[];
-                        fd[k].push({"o:ingester": "url", "ingest_url":v});                                
+                        if(v){
+                            if(!fd[k])fd[k]=[];
+                            fd[k].push({"o:ingester": "url", "ingest_url":v});                                
+                        }
                         break;
                     case 'file':
                         fd['o:media']=[{"o:ingester": "upload","file_index": "1"}];

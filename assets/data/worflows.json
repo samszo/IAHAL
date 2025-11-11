@@ -73,7 +73,7 @@
                 "path": "#flowchart-showItems-17 > polygon"
             },
             {
-                "function": "replaceIds",
+                "function": "replaceIdsAndImport",
                 "params": [
                     {
                         "pathData": "steps[1].jsons[2].data.*",
@@ -102,18 +102,7 @@
                         "rt": "auteur"
                     }
                 ],
-                "label": "Remplace les identifiants HAL par ceux d'OMK"
-            },
-            {
-                "function": "dataHalToOmk",
-                "params": [
-                    {
-                        "pathData": "steps[1].jsons[2].data",
-                        "rt": "auteur"
-                    }
-                ],
-                "label": "Import les données dans OMK",
-                "path": "#flowchart-importAuteur-21 > polygon"
+                "label": "Remplace les identifiants HAL par ceux d'OMK et importe les données une à une"
             },
             {
                 "function": "dataOmkLoaded",
@@ -131,37 +120,90 @@
                 "path": "#flowchart-showItems-17 > polygon"
             },
             {
-                "function": "replaceIds",
+                "function": "replaceIdsAndImport",
                 "params": [
                     {
-                        "pathData": "steps[1].jsons[2].omk",
-                        "src": "authFullName_s",
-                        "dst": "hal:hasAuteur"
-                    }
-                ],
-                "label": "Remplace les identifiants HAL par ceux d'OMK",
-                "path": "#flowchart-replaceId-19 > polygon"
-            },
-            {
-                "function": "replaceIds",
-                "params": [
-                    {
-                        "pathData": "steps[1].jsons[2].data.*",
+                        "pathData": "steps[1].jsons[3].data.*",
+                        "groupData": "conferenceStartDate_s",
                         "replace": [
                             {
-                                "omkSrc": "property[0][joiner]=and&property[0][property]=10&property[0][type]=eq&resource_class_id[]=94&property[0][text]=",
-                                "pathSrc": "$.authIdHal_s.*",
-                                "dst": "foaf:member"
+                                "omkSrc": "property[0][joiner]=and&property[0][property]=138&property[0][type]=eq&resource_class_id[]=94&property[0][text]=",
+                                "pathSrc": "$.scientificEditor_s.*",
+                                "dst": "bibo:editorList"
+                            }
+                        ],
+                        "path": [
+                            "#flowchart-replaceId-19 > polygon",
+                            "#flowchart-importConf-25 > polygon",
+                            "#flowchart-importRefOmk-11 > polygon"
+                        ],
+                        "rt": "conférence"
+                    }
+                ],
+                "label": "Remplace les identifiants HAL par ceux d'OMK et importe les données une à une"
+            },
+
+            {
+                "function": "replaceIdsAndImport",
+                "params": [
+                    {
+                        "pathData": "steps[1].jsons[3].data.*",
+                        "groupDataFlat": "authIdHasPrimaryStructure_fs",
+                        "replace": [
+                            {
+                                "omkSrc": "property[0][joiner]=and&property[0][property]=138&property[0][type]=eq&resource_class_id[]=94&property[0][text]=",
+                                "pathSrc": "$.authIdHasPrimaryStructure_fs.*",
+                                "splitSrc": {"sep":"_","idx":2},
+                                "dst": "hal:person"
                             },
                             {
-                                "omkSrc": "resource_class_id[]=409&property[0][joiner]=and&property[0][property]=539&property[0][type]=eq&property[0][text]=domain&property[1][joiner]=and&property[1][property]=4&property[1][type]=eq&property[1][text]=",
-                                "pathSrc": "$.interests.interests..id",
-                                "dst": "foaf:interest"
+                                "omkSrc": "property[0][joiner]=and&property[0][property]=10&property[0][type]=eq&resource_class_id[]=413&property[0][text]=",
+                                "pathSrc": "$.authIdHasPrimaryStructure_fs.*",
+                                "splitSrc": {"sep":"_","idx":4},
+                                "dst": "hal:structure"
+                            }
+                        ],
+                        "path": [
+                            "#flowchart-replaceId-19 > polygon",
+                            "#flowchart-importConf-25 > polygon",
+                            "#flowchart-importRefOmk-11 > polygon"
+                        ],
+                        "rt": "créateur"
+                    }
+                ],
+                "label": "Remplace les identifiants HAL par ceux d'OMK et importe les données une à une"
+            },
+
+            {
+                "function": "replaceIdsAndImport",
+                "params": [
+                    {
+                        "pathData": "steps[1].jsons[3].data.*",
+                        "replace": [
+                            {
+                                "omkSrc": "property[0][joiner]=and&property[0][property]=10&property[0][type]=eq&resource_class_id[]=484&property[0][text]=",
+                                "pathSrc": "$.authIdHasPrimaryStructure_fs.*",
+                                "dst": "dcterms:creator"
                             },
                             {
                                 "omkSrc": "resource_class_id[]=409&property[0][joiner]=and&property[0][property]=539&property[0][type]=eq&property[0][text]=keyword&property[1][joiner]=and&property[1][property]=538&property[1][type]=eq&property[1][text]=",
-                                "pathSrc": "$.interests.topics.*",
-                                "dst": "foaf:topic_interest"
+                                "pathSrc": "$.fr_keyword_s.*",
+                                "dst": "dcterms:subject"
+                            },
+                            {
+                                "omkSrc": "resource_class_id[]=409&property[0][joiner]=and&property[0][property]=539&property[0][type]=eq&property[0][text]=keyword&property[1][joiner]=and&property[1][property]=538&property[1][type]=eq&property[1][text]=",
+                                "pathSrc": "$.en_keyword_s.*",
+                                "dst": "dcterms:subject"
+                            },
+                            {
+                                "omkSrc": "resource_class_id[]=409&property[0][joiner]=and&property[0][property]=539&property[0][type]=eq&property[0][text]=domain&property[1][joiner]=and&property[1][property]=4&property[1][type]=eq&property[1][text]=",
+                                "pathSrc": "$.domainAllCode_s.*",
+                                "dst": "hal:topic"
+                            },
+                            {
+                                "omkSrc": "resource_class_id[]=47&property[0][joiner]=and&property[0][property]=235&property[0][type]=eq&property[0][text]=",
+                                "pathSrc": "$.conferenceStartDate_s",
+                                "dst": "dcterms:source"
                             }
                         ],
                         "path": [
@@ -169,24 +211,10 @@
                             "#flowchart-importAuteur-21 > polygon",
                             "#flowchart-importRefOmk-11 > polygon"
                         ],
-                        "rt": "auteur"
+                        "rt": "document"
                     }
                 ],
-                "label": "Remplace les identifiants HAL par ceux d'OMK"
-            },
-
-
-
-            {
-                "function": "dataHalToOmk",
-                "params": [
-                    {
-                        "pathData": "steps[1].jsons[3].data",
-                        "rt": "depot"
-                    }
-                ],
-                "label": "Import les données dans OMK",
-                "path": "#flowchart-importDepots-23 > polygon"
+                "label": "Remplace les identifiants HAL par ceux d'OMK et importe les données une à une"
             },
             {
                 "function": "dataOmkLoaded",
